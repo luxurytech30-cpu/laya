@@ -19,7 +19,7 @@ const frankRuhl = Frank_Ruhl_Libre({
 });
 
 export const metadata: Metadata = {
-  title: "LORD | חוויית יוקרה דיגיטלית",
+  title: "LAYA LUXE | חוויית יוקרה דיגיטלית",
   description: "חנות יוקרה בעברית לשעונים, תיקים ובשמים",
 };
 
