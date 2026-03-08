@@ -60,7 +60,7 @@ function ProductsPageInner() {
   const pathname = usePathname();
 
   const [loading, setLoading] = useState(true);
-  const [addedKey, setAddedKey] = useState("");
+  const [addingKey, setAddingKey] = useState("");
   const [feedback, setFeedback] = useState<FeedbackState>(null);
   const feedbackTimeoutRef = useRef<number | null>(null);
 
@@ -181,6 +181,10 @@ function ProductsPageInner() {
       return;
     }
 
+    const key = `${product._id}:${option._id}`;
+    if (addingKey === key) return;
+    setAddingKey(key);
+
     void addToCart({
       productId: product._id,
       optionId: option._id,
@@ -198,16 +202,13 @@ function ProductsPageInner() {
           return;
         }
 
-        const key = `${product._id}:${option._id}`;
-        setAddedKey(key);
-        window.setTimeout(() => {
-          setAddedKey((current) => (current === key ? "" : current));
-        }, 1200);
-
         showFeedback("success", "המוצר נוסף לסל");
       })
       .catch(() => {
         showFeedback("error", "לא הצלחנו להוסיף לסל. נסו שוב.");
+      })
+      .finally(() => {
+        setAddingKey((current) => (current === key ? "" : current));
       });
   }
 
@@ -387,13 +388,13 @@ function ProductsPageInner() {
       <button
         type="button"
         onClick={(event) => handleQuickAdd(event, p, opt)}
-        disabled={!opt || opt.inStock <= 0}
+        disabled={!opt || opt.inStock <= 0 || addingKey === currentKey}
         className="lux-button lux-button--ghost w-full rounded-2xl py-3 text-sm font-extrabold disabled:cursor-not-allowed disabled:opacity-60"
       >
         {!opt || opt.inStock <= 0
           ? "אזל מהמלאי"
-          : addedKey === currentKey
-          ? "נוסף לסל"
+          : addingKey === currentKey
+          ? "מוסיף..."
           : "הוסף לסל"}
       </button>
     </div>
