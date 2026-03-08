@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { addToCart, getCartItems } from "@/lib/cart";
@@ -54,7 +54,7 @@ function getDefaultOption(product: Product) {
     .sort((a, b) => optionFinalPrice(a) - optionFinalPrice(b))[0] || null;
 }
 
-export default function ProductsPage() {
+function ProductsPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -419,5 +419,23 @@ export default function ProductsPage() {
       ) : null}
     </div>
     
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="lux-shell">
+          <div className="mx-auto max-w-6xl px-4 py-10">
+            <div className="lux-card rounded-3xl p-6 md:p-8">
+              <p className="text-sm text-white/70">טוען...</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <ProductsPageInner />
+    </Suspense>
   );
 }
