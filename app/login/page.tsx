@@ -90,7 +90,7 @@ export default function LoginPage() {
                   setForm((prev) => ({ ...prev, username: event.target.value }))
                 }
                 className="mt-2 w-full rounded-xl border border-amber-200/25 bg-black/40 px-4 py-3 text-amber-50 outline-none transition focus:border-amber-300 focus:ring-2 focus:ring-amber-500/30"
-                placeholder="לדוגמה: lord-admin"
+                placeholder="הכנס שם משתמש"
                 autoComplete="username"
                 required
               />
