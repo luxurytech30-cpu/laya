@@ -1,26 +1,468 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #070707;
+  --foreground: #f7f2e8;
+  --lux-black: #0c0c0c;
+  --lux-black-soft: #161616;
+  --lux-gold: #cda53b;
+  --lux-gold-soft: #f2d68a;
+  --lux-border: rgba(205, 165, 59, 0.34);
+  --lux-surface: rgba(14, 14, 14, 0.72);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-hebrew-sans);
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 16% 10%, rgba(205, 165, 59, 0.2), transparent 34%),
+    radial-gradient(circle at 88% 0%, rgba(205, 165, 59, 0.12), transparent 36%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%23f2d68a' stroke-opacity='.12' stroke-width='1.15'%3E%3Crect x='22' y='28' width='22' height='16' rx='2'/%3E%3Cpath d='M33 28v16M22 36h22M33 28c0-4 6-6 8-2M33 28c0-4-6-6-8-2'/%3E%3Crect x='118' y='92' width='24' height='18' rx='2'/%3E%3Cpath d='M130 92v18M118 101h24M130 92c0-4 6-6 8-2M130 92c0-4-6-6-8-2'/%3E%3Cpath d='M74 132h8M78 128v8M152 36h7M155.5 32.5v7'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(165deg, #050505 0%, #121212 52%, #070707 100%);
+  background-size: auto, auto, 180px 180px, auto;
+  background-attachment: scroll, scroll, scroll, scroll;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-hebrew-sans), sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(205, 165, 59, 0.35);
+  color: #fff9ea;
+}
+
+.lux-shell {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.lux-shell::before,
+.lux-shell::after {
+  content: "";
+  position: absolute;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 999px;
+  filter: blur(45px);
+  z-index: -1;
+}
+
+.lux-shell::before {
+  inset-inline-start: -7rem;
+  top: -5rem;
+  background: rgba(205, 165, 59, 0.2);
+  animation: none;
+}
+
+.lux-shell::after {
+  inset-inline-end: -9rem;
+  bottom: -8rem;
+  background: rgba(205, 165, 59, 0.15);
+  animation: none;
+}
+
+.lux-card {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)),
+    var(--lux-surface);
+  border: 1px solid var(--lux-border);
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(12px);
+}
+
+.lux-heading {
+  font-family: var(--font-hebrew-serif), serif;
+  letter-spacing: 0.03em;
+}
+
+.gold-text {
+  color: var(--lux-gold-soft);
+}
+
+.lux-line {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(205, 165, 59, 0), rgba(205, 165, 59, 0.65), rgba(205, 165, 59, 0));
+}
+
+.lux-button {
+  border: 1px solid rgba(205, 165, 59, 0.62);
+  background: linear-gradient(120deg, rgba(205, 165, 59, 0.2), rgba(205, 165, 59, 0.45));
+  color: #fff8e7;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+}
+
+.lux-button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(242, 214, 138, 0.85);
+  box-shadow: 0 16px 32px rgba(205, 165, 59, 0.22);
+}
+
+.lux-button--ghost {
+  background: rgba(205, 165, 59, 0.08);
+}
+
+.lux-nav {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  padding: 0.65rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(205, 165, 59, 0.24);
+  background:
+    radial-gradient(circle at 8% 10%, rgba(205, 165, 59, 0.16), transparent 45%),
+    linear-gradient(145deg, rgba(0, 0, 0, 0.5), rgba(22, 22, 22, 0.82));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.lux-nav::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: -24%;
+  inset-block-start: -155%;
+  width: 35%;
+  height: 320%;
+  pointer-events: none;
+  opacity: 0.9;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(242, 214, 138, 0.1) 50%,
+    transparent 100%
+  );
+  transform: rotate(18deg);
+  animation: nav-sheen 11s linear infinite;
+}
+
+.lux-nav-link {
+  position: relative;
+  z-index: 1;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(205, 165, 59, 0.18);
+  background: rgba(0, 0, 0, 0.38);
+  color: rgba(247, 242, 232, 0.94);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-align: center;
+  padding: 0.72rem 1.08rem;
+  transition:
+    transform 0.24s ease,
+    border-color 0.24s ease,
+    background 0.24s ease,
+    color 0.24s ease,
+    box-shadow 0.24s ease;
+  transform: translateY(10px);
+  opacity: 0;
+  animation: nav-enter 0.5s ease forwards;
+}
+
+.lux-nav-link::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0.95rem;
+  bottom: 0.36rem;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(242, 214, 138, 0.88), transparent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.22s ease;
+}
+
+.lux-nav-link:hover,
+.lux-nav-link:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(242, 214, 138, 0.68);
+  background: rgba(205, 165, 59, 0.16);
+  color: #fff8e7;
+  box-shadow: 0 10px 24px rgba(205, 165, 59, 0.16);
+}
+
+.lux-nav-link:hover::after,
+.lux-nav-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.lux-nav-link--active {
+  border-color: rgba(242, 214, 138, 0.8);
+  background: linear-gradient(120deg, rgba(205, 165, 59, 0.22), rgba(205, 165, 59, 0.4));
+  color: #fff8e7;
+  box-shadow:
+    inset 0 0 0 1px rgba(242, 214, 138, 0.24),
+    0 10px 24px rgba(205, 165, 59, 0.2);
+}
+
+.lux-nav-link--active::after {
+  transform: scaleX(1);
+}
+
+.lux-appear {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fade-up 0.85s ease forwards;
+}
+
+.delay-1 {
+  animation-delay: 0.15s;
+}
+
+.delay-2 {
+  animation-delay: 0.3s;
+}
+
+.delay-3 {
+  animation-delay: 0.45s;
+}
+
+.delay-4 {
+  animation-delay: 0.6s;
+}
+
+.glow-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--lux-gold);
+  box-shadow: 0 0 0 rgba(205, 165, 59, 0.45);
+  animation: glow-pulse 2.4s ease-in-out infinite;
+}
+
+.lux-premium-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.lux-premium-sheen::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -34%;
+  inset-block-start: -165%;
+  width: 34%;
+  height: 330%;
+  pointer-events: none;
+  opacity: 0.4;
+  z-index: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(242, 214, 138, 0.16) 48%,
+    rgba(242, 214, 138, 0.08) 58%,
+    transparent 100%
+  );
+  transform: rotate(16deg);
+  animation: premium-sheen 12s linear infinite;
+}
+
+.lux-card-raise {
+  transition:
+    transform 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    background 0.35s ease;
+}
+
+.lux-card-raise:hover,
+.lux-card-raise:focus-within {
+  transform: translateY(-5px);
+  border-color: rgba(242, 214, 138, 0.62);
+  box-shadow:
+    0 26px 52px rgba(0, 0, 0, 0.46),
+    0 10px 26px rgba(205, 165, 59, 0.17);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+    rgba(14, 14, 14, 0.76);
+}
+
+.lux-float-slow {
+  will-change: transform;
+  animation: float-slow 7.5s ease-in-out infinite;
+}
+
+.lux-soft-pan {
+  will-change: transform;
+  animation: soft-pan 14s ease-in-out infinite alternate;
+}
+
+.lux-glow-hover {
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease,
+    border-color 0.28s ease,
+    background 0.28s ease;
+}
+
+.lux-glow-hover:hover,
+.lux-glow-hover:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(242, 214, 138, 0.72);
+  background: rgba(205, 165, 59, 0.12);
+  box-shadow: 0 14px 28px rgba(205, 165, 59, 0.2);
+}
+
+.lux-gradient-gold {
+  color: transparent;
+  background-image: linear-gradient(120deg, #f6e8bf 0%, #f0c865 35%, #fff3c7 60%, #d9a53b 100%);
+  background-size: 220% 220%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: gold-shift 8s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(2.5rem, 1.5rem, 0);
+  }
+}
+
+@keyframes float-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-2rem, -1.2rem, 0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(205, 165, 59, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(205, 165, 59, 0);
+  }
+}
+
+@keyframes nav-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nav-sheen {
+  0% {
+    transform: translateX(0) rotate(18deg);
+  }
+  100% {
+    transform: translateX(320%) rotate(18deg);
+  }
+}
+
+@keyframes premium-sheen {
+  0% {
+    transform: translateX(0) rotate(16deg);
+  }
+  100% {
+    transform: translateX(340%) rotate(16deg);
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes soft-pan {
+  0% {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.1) translate3d(-1.4rem, -0.8rem, 0);
+  }
+}
+
+@keyframes gold-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-premium-sheen::before,
+  .lux-float-slow,
+  .lux-soft-pan,
+  .lux-gradient-gold {
+    animation: none !important;
+  }
+
+  .lux-card-raise,
+  .lux-glow-hover {
+    transition: none !important;
+  }
+
+  .lux-card-raise:hover,
+  .lux-card-raise:focus-within,
+  .lux-glow-hover:hover,
+  .lux-glow-hover:focus-visible {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .lux-shell::before,
+  .lux-shell::after {
+    width: 15rem;
+    height: 15rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .lux-nav {
+    gap: 0.5rem;
+    padding: 0.52rem;
+  }
+
+  .lux-nav-link {
+    font-size: 0.74rem;
+    padding: 0.6rem 0.9rem;
+  }
 }
