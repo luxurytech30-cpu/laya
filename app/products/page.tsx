@@ -220,9 +220,9 @@ function ProductsPageInner() {
   }, [viewProducts, categories, categoryId]);
 
   const activeBackgroundImage = useMemo(() => {
-    if (!groupedProducts.length) return "";
-    const selectedGroup =
-      (categoryId ? groupedProducts.find((group) => group.key === categoryId) : null) || groupedProducts[0];
+    if (!categoryId) return "";
+    const selectedGroup = groupedProducts.find((group) => group.key === categoryId);
+    if (!selectedGroup) return "";
     return categoryDisplayImage(selectedGroup.category, selectedGroup.products);
   }, [groupedProducts, categoryId]);
 
@@ -515,4 +515,3 @@ export default function ProductsPage() {
     </Suspense>
   );
 }
-
