@@ -33,9 +33,7 @@ export default function RootLayout({
       <body className={`${heebo.variable} ${frankRuhl.variable} antialiased`}>
         <MainNavbar />
         {children}
-        <div className="mt-10">
-          <Footer year={new Date().getFullYear()} />
-        </div>
+        <Footer year={new Date().getFullYear()} />
       </body>
     </html>
   );

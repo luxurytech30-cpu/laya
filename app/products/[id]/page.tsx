@@ -319,7 +319,7 @@ export default function ProductDetailPage() {
         <div
           role={feedback.kind === "error" ? "alert" : "status"}
           className={[
-            "fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-xl",
+            "fixed top-4 right-4 left-4 z-50 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-xl sm:left-auto sm:w-104",
             feedback.kind === "success"
               ? "border-emerald-300/35 bg-emerald-950/85 text-emerald-100"
               : "border-rose-300/35 bg-rose-950/85 text-rose-100",

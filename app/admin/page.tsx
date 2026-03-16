@@ -137,6 +137,13 @@ function formatPct(value: number) {
   return `${safe > 0 ? "+" : ""}${safe.toFixed(1)}%`;
 }
 
+function formatDateRange(start: string | null, end: string | null) {
+  if (start && end) return `${start} עד ${end}`;
+  if (start) return `${start} עד היום`;
+  if (end) return `עד ${end}`;
+  return "כל התקופה";
+}
+
 function growthClass(value: number) {
   if (value > 0) return "text-emerald-200";
   if (value < 0) return "text-rose-200";
@@ -170,6 +177,8 @@ export default function AdminDashboard() {
   const [customEnd, setCustomEnd] = useState(() => toLocalDateInput(new Date()));
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastLoadedAt, setLastLoadedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const queryString = useMemo(() => {
@@ -182,31 +191,45 @@ export default function AdminDashboard() {
     return params.toString();
   }, [range, customStart, customEnd]);
 
-  const load = useCallback(async () => {
-    if (range === "custom") {
-      if (!customStart || !customEnd) {
-        setError("יש לבחור תאריך התחלה ותאריך סיום.");
-        setLoading(false);
-        return;
+  const load = useCallback(
+    async ({ manual = false }: { manual?: boolean } = {}) => {
+      if (manual) {
+        setRefreshing(true);
       }
-      if (customStart > customEnd) {
-        setError("תאריך התחלה חייב להיות קטן או שווה לתאריך סיום.");
-        setLoading(false);
-        return;
-      }
-    }
 
-    try {
-      setError("");
-      setLoading(true);
-      const json = await apiFetch<DashboardData>(`/api/admin/reports/overview?${queryString}`);
-      setData(json);
-    } catch (apiError: unknown) {
-      setError(apiError instanceof Error ? apiError.message : "Failed to load dashboard.");
-    } finally {
-      setLoading(false);
-    }
-  }, [range, customStart, customEnd, queryString]);
+      if (range === "custom") {
+        if (!customStart || !customEnd) {
+          setError("יש לבחור תאריך התחלה ותאריך סיום.");
+          setLoading(false);
+          if (manual) setRefreshing(false);
+          return;
+        }
+        if (customStart > customEnd) {
+          setError("תאריך התחלה חייב להיות קטן או שווה לתאריך סיום.");
+          setLoading(false);
+          if (manual) setRefreshing(false);
+          return;
+        }
+      }
+
+      try {
+        setError("");
+        setLoading(true);
+        const requestQuery = manual ? `${queryString}&_ts=${Date.now()}` : queryString;
+        const json = await apiFetch<DashboardData>(`/api/admin/reports/overview?${requestQuery}`, {
+          cache: "no-store",
+        });
+        setData(json);
+        setLastLoadedAt(new Date().toISOString());
+      } catch (apiError: unknown) {
+        setError(apiError instanceof Error ? apiError.message : "Failed to load dashboard.");
+      } finally {
+        setLoading(false);
+        if (manual) setRefreshing(false);
+      }
+    },
+    [range, customStart, customEnd, queryString]
+  );
 
   useEffect(() => {
     void load();
@@ -270,11 +293,12 @@ export default function AdminDashboard() {
           <button
             type="button"
             onClick={() => {
-              void load();
+              void load({ manual: true });
             }}
-            className="rounded-xl border border-amber-200/25 bg-black/35 px-4 py-2 text-xs font-semibold text-amber-50 hover:bg-black/45"
+            disabled={loading || refreshing}
+            className="rounded-xl border border-amber-200/25 bg-black/35 px-4 py-2 text-xs font-semibold text-amber-50 hover:bg-black/45 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            רענון נתונים
+            {refreshing ? "מרענן..." : "רענון נתונים"}
           </button>
         </div>
 
@@ -282,6 +306,7 @@ export default function AdminDashboard() {
           <p className="mt-3 text-xs text-amber-100/75">
             תקופה פעילה: {data.range.label}
             {data.range.start && data.range.end ? ` (${data.range.start} עד ${data.range.end})` : ""}
+            {lastLoadedAt ? ` | עודכן: ${formatDate(lastLoadedAt)}` : ""}
           </p>
         ) : null}
       </div>
@@ -334,12 +359,14 @@ export default function AdminDashboard() {
           <div className="mt-6 grid gap-3 lg:grid-cols-3">
             <article className="rounded-2xl border border-amber-200/15 bg-black/25 p-4 lg:col-span-1">
               <p className="text-xs text-amber-100/70">תקופה נבחרת</p>
+              <p className="mt-2 text-[11px] text-amber-100/65">טווח תאריכים: {formatDateRange(data.range.start, data.range.end)}</p>
               <p className="mt-2 text-sm text-amber-100/75">הזמנות: {formatNumber(data.currentPeriod.orders)}</p>
               <p className="mt-1 text-sm text-amber-100/75">מחזור: {formatCurrency(data.currentPeriod.grossRevenue)}</p>
               <p className="mt-1 text-sm text-amber-100/75">שולם: {formatCurrency(data.currentPeriod.paidRevenue)}</p>
             </article>
             <article className="rounded-2xl border border-amber-200/15 bg-black/25 p-4 lg:col-span-1">
               <p className="text-xs text-amber-100/70">תקופה קודמת</p>
+              <p className="mt-2 text-[11px] text-amber-100/65">טווח תאריכים: {formatDateRange(data.range.previousStart, data.range.previousEnd)}</p>
               <p className="mt-2 text-sm text-amber-100/75">הזמנות: {formatNumber(data.previousPeriod.orders)}</p>
               <p className="mt-1 text-sm text-amber-100/75">מחזור: {formatCurrency(data.previousPeriod.grossRevenue)}</p>
               <p className="mt-1 text-sm text-amber-100/75">שולם: {formatCurrency(data.previousPeriod.paidRevenue)}</p>
@@ -495,7 +522,13 @@ export default function AdminDashboard() {
               <div className="border-b border-amber-200/10 bg-black/25 px-4 py-3">
                 <h2 className="text-sm font-semibold text-amber-50">הזמנות מזומן ממתינות בלבד</h2>
               </div>
-              <div className="overflow-x-auto">
+              <div
+                className={
+                  data.pendingCashOrders.length > 8
+                    ? "lux-scrollbar max-h-124 overflow-auto"
+                    : "lux-scrollbar overflow-x-auto"
+                }
+              >
                 <table className="min-w-190 w-full text-sm">
                   <thead className="bg-black/20 text-[11px] text-amber-100/75">
                     <tr>

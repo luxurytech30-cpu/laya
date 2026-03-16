@@ -160,6 +160,9 @@ async function hydrateCheckoutItems(guestId: string) {
     if (!option) continue;
 
     const stock = Number.isFinite(Number(option.inStock)) ? Math.max(0, Math.floor(Number(option.inStock))) : 0;
+    if (stock <= 0) {
+      throw new Error("OUT_OF_STOCK");
+    }
     const qty = stock > 0 ? Math.min(item.qty, stock) : item.qty;
 
     result.push({
@@ -208,8 +211,22 @@ function paymentMethodLabel(method: PaymentMethod) {
     : "מזומן";
 }
 
+function paymentStatusLabel(method: PaymentMethod) {
+  return method === "visa"
+    ? "ממתין לתשלום באשראי"
+    : "ממתין לאישור תשלום במזומן";
+}
+
 function formatIls(value: number) {
   return `₪${value.toFixed(2)}`;
+}
+
+function formatOrderDateTime(date = new Date()) {
+  return new Intl.DateTimeFormat("he-IL", {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "Asia/Jerusalem",
+  }).format(date);
 }
 
 async function sendWhatsAppMessage(chatId: string, message: string) {
@@ -242,24 +259,38 @@ async function notifyAdminOrderPlaced(params: {
 }) {
   if (!GREEN_ADMIN_CHAT_ID) return;
 
-  const itemsLines = params.items.map(
-    (item) =>
-      `- ${item.title} | ${item.optionName} x${item.qty} | ${formatIls(item.unitPrice)}`
-  );
+  const totalUnits = params.items.reduce((sum, item) => sum + item.qty, 0);
+
+  const itemsLines = params.items.flatMap((item, index) => {
+    const lineTotal = item.unitPrice * item.qty;
+    return [
+      `▫️ פריט ${index + 1}: ${item.title}`,
+      `   אפשרות: ${item.optionName}`,
+      `   חישוב: ${item.qty} × ${formatIls(item.unitPrice)} = ${formatIls(lineTotal)}`,
+      "   ───────────────",
+    ];
+  });
+  if (itemsLines.length > 0) itemsLines.pop();
 
   const message = [
-    "התקבלה הזמנה חדשה מהאתר",
+    "🛒 הזמנה חדשה התקבלה באתר",
     "",
     `מספר הזמנה: ${params.orderRef}`,
+    `תאריך ושעה: ${formatOrderDateTime()}`,
     `אמצעי תשלום: ${paymentMethodLabel(params.paymentMethod)}`,
-    `סכום: ${formatIls(params.amount)}`,
+    `סטטוס תשלום: ${paymentStatusLabel(params.paymentMethod)}`,
+    `סכום כולל: ${formatIls(params.amount)}`,
+    `סה\"כ יחידות: ${totalUnits}`,
     "",
+    "פרטי לקוח:",
     `שם: ${params.customerName}`,
     `טלפון: ${params.customerPhone}`,
     `אימייל: ${params.customerEmail || "-"}`,
     "",
-    "פריטים:",
+    "פריטים בהזמנה:",
     ...itemsLines,
+    "",
+    `סכום לתשלום: ${formatIls(params.amount)}`,
   ].join("\n");
 
   await sendWhatsAppMessage(GREEN_ADMIN_CHAT_ID, message);
@@ -287,23 +318,43 @@ async function notifyCustomerOrderPlaced(params: {
   amount: number;
   customerName: string;
   customerPhone: string;
+  items: CheckoutItem[];
 }) {
   const customerChatId = phoneToChatId(params.customerPhone);
   if (!customerChatId) return;
 
-  const followUpLine =
+  const actionLine =
     params.paymentMethod === "cash"
-      ? `תודה ${params.customerName}, ניצור איתך קשר בהקדם.`
-      : `תודה ${params.customerName}, התשלום נקלט בהצלחה.`;
+      ? "ניצור איתך קשר בהקדם לאישור ותיאום תשלום במזומן."
+      : "להשלמת ההזמנה, יש לבצע את התשלום בעמוד המאובטח שנפתח כעת.";
+
+  const shortItems = params.items
+    .slice(0, 4)
+    .flatMap((item) => {
+      const lineTotal = item.unitPrice * item.qty;
+      return [
+        `• ${item.title}`,
+        `  ${item.optionName} | ${item.qty} × ${formatIls(item.unitPrice)} = ${formatIls(lineTotal)}`,
+      ];
+    });
+  const moreItemsLine = params.items.length > 4 ? `• ועוד ${params.items.length - 4} פריטים` : "";
 
   const message = [
-    "✅ ההזמנה שלך התקבלה בהצלחה",
+    "✅ תודה על ההזמנה ב-Laya Luxe",
+    "",
+    `שלום ${params.customerName},`,
+    "קיבלנו את פרטי ההזמנה שלך.",
     "",
     `מספר הזמנה: ${params.orderRef}`,
     `אמצעי תשלום: ${paymentMethodLabel(params.paymentMethod)}`,
-    `סכום: ${formatIls(params.amount)}`,
+    `סכום לתשלום: ${formatIls(params.amount)}`,
     "",
-    followUpLine,
+    "סיכום פריטים:",
+    ...shortItems,
+    ...(moreItemsLine ? [moreItemsLine] : []),
+    "",
+    actionLine,
+    "לסיוע ושירות: 050-735-0731",
   ].join("\n");
 
   await sendWhatsAppMessage(customerChatId, message);
@@ -455,6 +506,7 @@ export async function POST(req: Request) {
         amount,
         customerName,
         customerPhone,
+        items,
       });
     } catch (notifyCustomerError) {
       console.error("[api/checkout] customer whatsapp notify failed", notifyCustomerError);
@@ -479,7 +531,17 @@ export async function POST(req: Request) {
       amount,
       redirectUrl,
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === "OUT_OF_STOCK") {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "יש פריט שאזל מהמלאי בסל. נא לעדכן את הסל לפני השלמת ההזמנה.",
+        },
+        { status: 409 }
+      );
+    }
+
     console.error("[api/checkout] failed", error);
     return NextResponse.json(
       {

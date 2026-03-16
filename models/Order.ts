@@ -77,5 +77,13 @@ const OrderSchema = new Schema<OrderDoc>(
 );
 
 OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({ paymentStatus: 1, createdAt: -1 });
+OrderSchema.index({ paymentMethod: 1, paymentStatus: 1, createdAt: -1 });
+OrderSchema.index({ "customer.phone": 1, createdAt: -1 });
+OrderSchema.index({ "items.productId": 1, createdAt: -1 });
+OrderSchema.index(
+  { paymentMethod: 1, paymentStatus: 1, createdAt: 1 },
+  { partialFilterExpression: { paymentMethod: "cash", paymentStatus: "pending_cash" } }
+);
 
 export const Order = mongoose.models.Order || mongoose.model<OrderDoc>("Order", OrderSchema);

@@ -22,7 +22,7 @@ const initialFormData: FormData = {
 
 const socials = [
   {
-    href: "https://instagram.com",
+    href: "https://www.instagram.com/lord_luxe_online?igsh=MXh1M25kaXptcG01ZQ==",
     label: "Instagram",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-4 w-4">
@@ -33,7 +33,7 @@ const socials = [
     ),
   },
   {
-    href: "https://facebook.com",
+    href: "https://www.facebook.com/share/1CdUvQTzVT/?mibextid=wwXIfr",
     label: "Facebook",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-4 w-4">
@@ -158,8 +158,8 @@ export default function ContactPage() {
               <div className="mt-5 space-y-4">
                 <article className="lux-appear delay-1 rounded-2xl border border-(--lux-border) bg-black/30 p-4">
                   <p className="text-xs font-bold tracking-[0.16em] text-(--lux-gold-soft)">טלפון</p>
-                  <a href="tel:050-123-4567" dir="ltr" className="mt-2 block text-lg font-bold text-white transition hover:text-(--lux-gold-soft)">
-                    050-123-4567
+                  <a href="tel:050-123-4567"  className="mt-2 block text-lg font-bold text-white transition hover:text-(--lux-gold-soft)">
+                    050-735-0731
                   </a>
                 </article>
 
@@ -167,7 +167,7 @@ export default function ContactPage() {
                   <p className="text-xs font-bold tracking-[0.16em] text-(--lux-gold-soft)">דוא״ל</p>
                   <a
                     href="mailto:info@lord.co.il"
-                    dir="ltr"
+                    
                     className="mt-2 block text-base font-bold text-white transition hover:text-(--lux-gold-soft)"
                   >
                     info@lord.co.il
@@ -176,8 +176,13 @@ export default function ContactPage() {
 
                 <article className="lux-appear delay-3 rounded-2xl border border-(--lux-border) bg-black/30 p-4">
                   <p className="text-xs font-bold tracking-[0.16em] text-(--lux-gold-soft)">שעות פעילות</p>
-                  <p className="mt-2 text-sm text-white/80">א׳-ה׳ 09:00-18:00</p>
-                  <p className="text-sm text-white/80">ו׳ 09:00-14:00</p>
+                  <p className="mt-2 text-sm text-white/80"> 09:00-23:59</p>
+                  
+                </article>
+                <article className="lux-appear delay-3 rounded-2xl border border-(--lux-border) bg-black/30 p-4">
+                  <p className="text-xs font-bold tracking-[0.16em] text-(--lux-gold-soft)">כתובת</p>
+                  <p className="mt-2 text-sm text-white/80"> עראבה, כביש ראשי</p>
+                  
                 </article>
               </div>
             </div>
@@ -217,7 +222,7 @@ export default function ContactPage() {
                     onChange={handleChange}
                     placeholder="your@email.com"
                     required
-                    dir="ltr"
+                    
                     className={inputBaseClass}
                   />
                 </div>
@@ -233,8 +238,8 @@ export default function ContactPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="050-1234567"
-                    dir="ltr"
-                    className={inputBaseClass}
+                    
+                    className={`${inputBaseClass} text-right`}
                   />
                 </div>
               </div>
@@ -300,10 +305,10 @@ export default function ContactPage() {
                 המלצה ממוקדת.
               </p>
               <a
-                href="tel:050-123-4567"
+                href="tel:0507350731"
                 className="lux-button lux-glow-hover mt-6 inline-flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-extrabold"
               >
-                התקשרו עכשיו: <span className="ms-2" dir="ltr">050-123-4567</span>
+                התקשרו עכשיו: <span className="ms-2" dir="ltr">050-735-0731</span>
               </a>
             </article>
 

@@ -14,7 +14,7 @@ const navLinks = [
 
 const socials = [
   {
-    href: "https://instagram.com",
+    href: "https://www.instagram.com/lord_luxe_online?igsh=MXh1M25kaXptcG01ZQ==",
     label: "Instagram",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-4 w-4">
@@ -25,7 +25,7 @@ const socials = [
     ),
   },
   {
-    href: "https://facebook.com",
+    href: "https://www.facebook.com/share/1CdUvQTzVT/?mibextid=wwXIfr",
     label: "Facebook",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-4 w-4">
@@ -70,8 +70,8 @@ export default function Footer({ year }: FooterProps) {
 
         <div className="lux-appear delay-2 space-y-2 text-sm text-white/80">
           <p className="text-xs font-bold tracking-[0.2em] text-(--lux-gold-soft)">צור קשר</p>
-          <a href="tel:+972501234567" className="block transition hover:text-(--lux-gold-soft)">
-            050-123-4567
+          <a href="tel:+972507350731" className="block transition hover:text-(--lux-gold-soft)">
+            050-735-0731
           </a>
           <a href="mailto:info@lord.co.il" className="block transition hover:text-(--lux-gold-soft)">
             info@lord.co.il

@@ -5,6 +5,10 @@ import { Category } from "@/models/Category";
 
 type CategoryBody = {
   name?: unknown;
+  image?: {
+    url?: unknown;
+    publicId?: unknown;
+  };
 };
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -36,12 +40,23 @@ export async function POST(req: Request) {
 
     const body = (await req.json().catch(() => null)) as CategoryBody | null;
     const name = String(body?.name ?? "").trim();
+    const imageUrl = String(body?.image?.url ?? "").trim();
+    const imagePublicId = String(body?.image?.publicId ?? "").trim();
 
     if (!name) {
       return NextResponse.json({ error: "Missing name" }, { status: 400 });
     }
+    if (!imageUrl || !imagePublicId) {
+      return NextResponse.json({ error: "Missing category image" }, { status: 400 });
+    }
 
-    const item = await Category.create({ name });
+    const item = await Category.create({
+      name,
+      image: {
+        url: imageUrl,
+        publicId: imagePublicId,
+      },
+    });
     return NextResponse.json({ item }, { status: 201 });
   } catch (error: unknown) {
     return NextResponse.json(

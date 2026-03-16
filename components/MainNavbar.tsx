@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clearToken, getToken } from "@/lib/api";
+import { setFlashFeedback } from "@/lib/flashFeedback";
 import {
   getCartCount,
   getOrCreateGuestId,
@@ -80,6 +80,7 @@ export default function MainNavbar() {
   }
 
   function handleLogout() {
+    setFlashFeedback({ kind: "success", message: "התנתקת בהצלחה" });
     clearToken();
     setIsMobileMenuOpen(false);
     router.replace("/login");

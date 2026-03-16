@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getToken, setToken } from "@/lib/api";
+import { consumeFlashFeedback, setFlashFeedback } from "@/lib/flashFeedback";
 
 type LoginResponse = {
   token: string;
@@ -17,6 +18,7 @@ type FormState = {
   username: string;
   password: string;
 };
+type FeedbackState = { kind: "success" | "error"; message: string } | null;
 
 const initialState: FormState = {
   username: "",
@@ -28,12 +30,38 @@ export default function LoginPage() {
   const [form, setForm] = useState<FormState>(initialState);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [feedback, setFeedback] = useState<FeedbackState>(null);
+  const feedbackTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (getToken()) {
       router.replace("/admin");
+      return;
     }
+
+    const flash = consumeFlashFeedback();
+    if (flash) {
+      setFeedback(flash);
+      if (feedbackTimeoutRef.current !== null) {
+        window.clearTimeout(feedbackTimeoutRef.current);
+      }
+      feedbackTimeoutRef.current = window.setTimeout(() => {
+        setFeedback(null);
+      }, 2200);
+    }
+
+    return () => {
+      if (feedbackTimeoutRef.current !== null) {
+        window.clearTimeout(feedbackTimeoutRef.current);
+      }
+    };
   }, [router]);
+
+  useEffect(() => {
+    if (error && feedback) {
+      setFeedback(null);
+    }
+  }, [error, feedback]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -59,7 +87,8 @@ export default function LoginPage() {
       }
 
       setToken(json.token);
-     router.push("/admin");
+      setFlashFeedback({ kind: "success", message: "התחברת בהצלחה" });
+      router.push("/admin");
     } catch (err) {
       setError(err instanceof Error ? err.message : "אירעה שגיאה בלתי צפויה");
     } finally {
@@ -127,6 +156,19 @@ export default function LoginPage() {
           </form>
         </section>
       </main>
+      {feedback ? (
+        <div
+          role={feedback.kind === "error" ? "alert" : "status"}
+          className={[
+            "fixed top-4 right-4 left-4 z-50 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-xl sm:left-auto sm:w-104",
+            feedback.kind === "success"
+              ? "border-emerald-300/35 bg-emerald-950/85 text-emerald-100"
+              : "border-rose-300/35 bg-rose-950/85 text-rose-100",
+          ].join(" ")}
+        >
+          {feedback.message}
+        </div>
+      ) : null}
     </div>
   );
 }

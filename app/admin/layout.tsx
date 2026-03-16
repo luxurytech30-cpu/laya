@@ -1,9 +1,13 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clearToken } from "@/lib/api";
+import { consumeFlashFeedback, setFlashFeedback } from "@/lib/flashFeedback";
+
+type FeedbackState = { kind: "success" | "error"; message: string } | null;
 
 const nav = [
   { href: "/admin", label: "דשבורד" },
@@ -15,8 +19,33 @@ const nav = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [feedback, setFeedback] = useState<FeedbackState>(null);
+  const feedbackTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const initTimerId = window.setTimeout(() => {
+      const flash = consumeFlashFeedback();
+      if (!flash) return;
+
+      setFeedback(flash);
+      if (feedbackTimeoutRef.current !== null) {
+        window.clearTimeout(feedbackTimeoutRef.current);
+      }
+      feedbackTimeoutRef.current = window.setTimeout(() => {
+        setFeedback(null);
+      }, 2200);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(initTimerId);
+      if (feedbackTimeoutRef.current !== null) {
+        window.clearTimeout(feedbackTimeoutRef.current);
+      }
+    };
+  }, []);
 
   function logout() {
+    setFlashFeedback({ kind: "success", message: "התנתקת בהצלחה" });
     clearToken();
     router.replace("/login");
   }
@@ -57,9 +86,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
           </aside>
 
-          <main className="lux-card rounded-3xl p-6 sm:p-8">{children}</main>
+          <main className="lux-card min-w-0 rounded-3xl p-6 sm:p-8">{children}</main>
         </div>
       </div>
+      {feedback ? (
+        <div
+          role={feedback.kind === "error" ? "alert" : "status"}
+          className={[
+            "fixed top-4 right-4 left-4 z-50 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-xl sm:left-auto sm:w-104",
+            feedback.kind === "success"
+              ? "border-emerald-300/35 bg-emerald-950/85 text-emerald-100"
+              : "border-rose-300/35 bg-rose-950/85 text-rose-100",
+          ].join(" ")}
+        >
+          {feedback.message}
+        </div>
+      ) : null}
     </AuthGuard>
   );
 }
